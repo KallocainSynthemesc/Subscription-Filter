@@ -1,14 +1,17 @@
-1.install npm and node
-2.Open Powershell on parent folder (I personally only built it on windows, but I think its very unlikely causing problems on a Linux system)
-2.execute "npm run build" in command console to build a minified version of the webextension
-3.execute "npm run serve" to build a not minified version of the webextension
+Have you ever found yourself in the situation of subscribing to a youtube channel where you only like videos with a specific title? Let's say for example you subscribed to a cooking channel but you would only like to see videos in your subscription that contain the word "Nachos" in the title. This Web extension helps you to remove all the videos in your subscription feed that you don't care about and leave only the videos that have "Nachos" in the title from the selected channel. This also works the other way around. If you like everything from this cooking channel but you really can't stand it when they are cooking fries then this Web extension helps you as well. Just select the channel and specify that you don't want to see any video in your subscription feed with the title "fries". This Web extension makes it way easier to see the videos that you really care for.
+For videos of a channel you don't want to see just select the channel and put the titles in the so called "Blacklist"
+For videos of a channel you only want to see and nothing else just put the titles in the "Whitelist" and you are good to go.
 
-notes: my code is in the src folder. The rest of the folders contains build code from https://github.com/Kocal/vue-web-extension
-If anything goes wrong during build that github link contains a more detailed instruction on how to build that project.
+functionality summary:
+-blacklist videos
+-whitelist videos
+-sort filter configuration
+-create tabs to group filter configuration
+-temporarily disable filter configurations
+-hide watched videos with threshold slider
+-click on banner to go to the youtube channels video page
 
-Requirements:
-Node.js >= 10 and npm >= 5
-git
-vue-cli 3+
+Permissions:
+-Access your data for sites in the youtube.com domain: to execute the filter code once you are on the subsription page
 
-I had to enable $env:NODE_OPTIONS = "--openssl-legacy-provider" on my local machine for it to build correctly.
+https://addons.mozilla.org/en-US/firefox/addon/youtube-subscription-filter/
