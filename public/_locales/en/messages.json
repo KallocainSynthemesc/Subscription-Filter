@@ -1,0 +1,121 @@
+{
+  "extName": {
+    "message": "filter-vue",
+    "description": ""
+  },
+  
+  "new": {
+    "message": "New",
+    "description": "Button to create a new filter"
+  },
+  
+  "new_title": {
+    "message": "Creates a new filter",
+    "description": "Button to create a new filter"
+  },
+  
+  "new_input": {
+    "message": "Channelname to apply the blacklist or whitelist to",
+    "description": "Input description"
+  },
+  
+  "dot_title": {
+    "message": "Click here to swap whitelist/blacklist",
+    "description": "Description when hovering over element"
+  },
+  
+  "blacklist_title": {
+    "message": "List of video titles you don't want to see",
+    "description": "Description when hovering over element"
+  },
+  
+  "whitelist_title": {
+    "message": "List of video titles you want to see",
+    "description": "Description when hovering over element"
+  },
+  
+  "trash_title": {
+    "message": "Temporarily enable or disable a filter",
+    "description": "Description when hovering over element"
+  },
+  
+  "switch_title": {
+    "message": "Temporarily enable or dissable a filter",
+    "description": "Description when hovering over element"
+  },
+  
+  "banner_title": {
+    "message": "Click to go to the youtube channel video page",
+    "description": "Description when hovering over element"
+  },
+  
+  "close": {
+    "message": "Close",
+    "description": "Button text"
+  },
+  
+  "save": {
+    "message": "Save",
+    "description": "Button text"
+  },
+  
+  "add": {
+    "message": "Add",
+    "description": "Button text"
+  },
+  
+  "config_title": {
+    "message": "Open the configuration",
+    "description": "Description when hovering over element"
+  },
+  
+  "config_header": {
+    "message": "Configuration",
+    "description": "Header in the config modal"
+  },
+  
+  "warning": {
+    "message": "Warning!",
+    "description": "Header in the config modal"
+  },
+  
+  "warning_message": {
+    "message": "You are currently not on Youtube subscriptions. You are only having reduced functionality right now. If the add-on is freshly installed and you see this warning try refreshing the subscription page",
+    "description": "Header in the config modal"
+  },
+  
+    
+  "hide_watched": {
+    "message": "Hide watched videos",
+    "description": "Überwachte Videos ausblenden"
+  },
+  
+    "hide_watched_percentage": {
+      "message": "Hide videos $1% watched",
+      "description": "Hide watched percentage"
+    },
+  "tabs_section": {
+    "message": "Tabs",
+    "description": "Tabs where filters are grouped"
+  },
+  
+  "filters_section": {
+    "message": "Filter",
+    "description": "Additional filters"
+  },
+  
+  "global_title": {
+    "message": "Executes filters independently of channels",
+    "description": "Executes filters independently of channels"
+  },
+  
+  "global_filter_blacklist_active": {
+    "message": "Activate global filter blacklist",
+    "description": "Activate global filter blacklist"
+  },
+  
+  "global_filter_whitelist_active": {
+    "message": "Activate global filter whitelist",
+    "description": "Activate global filter whitelist"
+  }
+}

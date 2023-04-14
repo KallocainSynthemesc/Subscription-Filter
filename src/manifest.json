@@ -1,0 +1,43 @@
+{
+
+  "description": "Filter out videos from your subscription that you dont like",
+  "manifest_version": 2,
+  "name": "Filter",
+  "version": "0.0.1.8",
+  "default_locale": "en",
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["js/content-script.js"],
+	  "run_at": "document_start"
+    }
+  ],
+  
+  "permissions": [
+    "activeTab",
+	"storage"
+  ],
+  
+  "icons": {
+    "225": "icons/rendered.png"
+  },
+  
+  "browser_action": {
+    "default_icon": "icons/rendered-32.png",
+    "theme_icons": [{
+        "light": "icons/rendered-32.png",
+        "dark": "icons/rendered-32.png",
+        "size": 32
+    }],
+    "default_title": "Youtube-filtre",
+    "default_popup": "popup.html"
+  },
+  
+  	
+	"background": {
+	      "scripts": [
+			  "js/background.js"
+			]
+	}
+
+}

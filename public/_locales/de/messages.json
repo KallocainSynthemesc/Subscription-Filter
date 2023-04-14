@@ -1,0 +1,121 @@
+{
+  "extName": {
+    "message": "filter-vue",
+    "description": ""
+  },
+  
+  "new": {
+    "message": "Neu",
+    "description": "Schaltfläche zum Erstellen eines neuen Filters"
+  },
+  
+  "new_title": {
+    "message": "Erzeugt einen neuen Filter",
+    "description": "Schaltfläche zum Erstellen eines neuen Filters"
+  },
+  
+  "new_input": {
+    "message": "Kanalname, auf den die Blacklist oder Whitelist angewendet werden soll",
+    "description": "Eingabebeschreibung"
+  },
+  
+  "dot_title": {
+    "message": "Klicken Sie hier, um die Whitelist/Blacklist zu tauschen",
+    "description": "Beschreibung, wenn der Mauszeiger über das Element bewegt wird"
+  },
+  
+  "blacklist_title": {
+    "message": "Liste von Videotiteln, die Sie nicht sehen möchten",
+    "description": "Beschreibung, wenn der Mauszeiger über das Element bewegt wird"
+  },
+  
+  "whitelist_title": {
+    "message": "Liste der Videotitel, die angezeigt werden sollen",
+    "description": "Beschreibung, wenn der Mauszeiger über das Element bewegt wird"
+  },
+  
+  "trash_title": {
+    "message": "Löschen des Filters",
+    "description": "Beschreibung, wenn der Mauszeiger über das Element bewegt wird"
+  },
+  
+  "switch_title": {
+    "message": "Filter vorübergehend aktivieren oder deaktivieren",
+    "description": "Beschreibung, wenn der Mauszeiger über das Element bewegt wird"
+  },
+  
+  "banner_title": {
+    "message": "Klicken Sie, um zur Videoseite des YouTube-Kanals zu gelangen",
+    "description": "Beschreibung, wenn der Mauszeiger über das Element bewegt wird"
+  },
+  
+  "close": {
+    "message": "Schließen",
+    "description": "Schaltflächentext"
+  },
+  
+  "save": {
+    "message": "Speichern",
+    "description": "Schaltflächentext"
+  },
+  
+  "add": {
+    "message": "Hinzufügen",
+    "description": "Schaltflächentext"
+  },
+  
+  "config_title": {
+    "message": "Öffnen der Konfiguration",
+    "description": "Beschreibung, wenn der Mauszeiger über das Element bewegt wird"
+  },
+  
+  "config_header": {
+    "message": "Konfiguration",
+    "description": "Header im Config-Modal"
+  },
+  
+  "warning": {
+    "message": "Warnung!",
+    "description": "Kopfzeile im Konfigurationsmodal"
+  },
+  
+  "warning_message": {
+    "message": "Sie sind derzeit nicht auf Ihrem Youtube Abo. Sie haben im Moment nur eine eingeschränkte Funktionalität. Wenn das Add-on frisch installiert ist und Sie diese Warnung sehen, versuchen Sie, die Abonnement-Seite zu aktualisieren",
+    "description": "Nachricht"
+  },
+  
+  "hide_watched": {
+    "message": "Gesehene Videos ausblenden",
+    "description": "Überwachte Videos ausblenden"
+  },
+  
+  "hide_watched_percentage": {
+    "message": "Videos ausblenden welche $1% gesehen wurden",
+    "description": "Tells the user which link they clicked."
+  },
+  
+  "tabs_section": {
+    "message": "Tabs",
+    "description": "Tabs in denen filter groupiert sind"
+  },
+  
+  "filters_section": {
+    "message": "Filter",
+    "description": "Zusätzliche filter"
+  },
+  
+  "global_title": {
+    "message": "Führt filter unabhängig von Kanälen aus",
+    "description": "Führt filter unabhängig von Kanälen aus"
+  },
+  
+  "global_filter_blacklist_active": {
+    "message": "Aktiviere globale Filter-Blacklist",
+    "description": "Aktiviere globale Filter-Blacklist"
+  },
+  
+  "global_filter_whitelist_active": {
+    "message": "Aktiviere globale Filter-Whitelist",
+    "description": "Aktiviere globale Filter-Whitelist"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "extName" : {
+    "message" : "filtre-valeur",
+    "description" : ""
+  },
+  
+  "new" : {
+    "message" : "Nouveau",
+    "description" : "Bouton pour créer un nouveau filtre"
+  },
+  
+  "new_title" : {
+    "message" : "Crée un nouveau filtre",
+    "description" : "Bouton pour créer un nouveau filtre"
+  },
+  
+  "new_input" : {
+    "message" : "nom de la chaîne à laquelle appliquer la liste noire ou la liste blanche",
+    "description" : "description d'entrée"
+  },
+  
+  "dot_title" : {
+    "message" : "Cliquez ici pour échanger liste blanche/liste noire",
+    "description" : "Description lors du survol d'un élément"
+  },
+  
+  "blacklist_title" : {
+    "message" : "Liste des titres de vidéos que vous ne voulez pas voir",
+    "description" : "Description lors du survol d'un élément"
+  },
+  
+  "whitelist_title" : {
+    "message" : "Liste des titres de vidéos que vous voulez voir",
+    "description" : "Description lors du survol d'un élément"
+  },
+  
+  "trash_title" : {
+    "message" : "Activer ou désactiver temporairement un filtre",
+    "description" : "Description lors du survol d'un élément"
+  },
+  
+  "switch_title" : {
+    "message" : "Activer ou désactiver temporairement un filtre",
+    "description" : "Description lors du survol d'un élément"
+  },
+  
+  "banner_title" : {
+    "message" : "Cliquez pour aller à la page vidéo de la chaîne Youtube",
+    "description" : "Description lors du survol d'un élément"
+  },
+  
+  "close" : {
+    "message" : "Fermer",
+    "description" : "texte du bouton" 
+  },
+  
+  "save" : {
+    "message" : "Sauvegarder",
+    "description" : "texte du bouton" 
+  },
+  
+  "add" : {
+    "message" : "Ajouter",
+    "description" : "texte du bouton"
+  },
+  
+  "config_title" : {
+    "message" : "ouvrir la configuration",
+    "description" : "Description lors du survol d'un élément"
+  },
+  
+  "config_header" : {
+    "message" : "configuration",
+    "description" : "En-tête dans le modal de configuration"
+  },
+  
+  "warning" : {
+    "message" : "Attention !",
+    "description" : "En-tête dans le modal de configuration"
+  },
+  
+  "warning_message" : {
+    "message" : "Vous n'êtes actuellement pas sur la page Youtube abonnement. Vous n'avez qu'une fonctionnalité réduite en ce moment. Si l'add-on est fraîchement installé et que vous voyez cet avertissement, essayez de rafraîchir la page d'abonnement",
+    "description" : "En-tête dans le modal de configuration"
+  },
+  
+  "hide_watched" : {
+    "message" : "Cacher les vidéos regardées",
+    "description" : "Cacher les vidéos regardées"
+  },
+  
+  "hide_watched_percentage": {
+    "message": "Cacher les vidéos $1% regardées",
+    "description": "Tells the user which link they clicked."
+  },
+  
+  "tabs_section": {
+    "message" : "Onglets",
+    "description" : "Onglets dans lesquels les filtres sont regroupés"
+  },
+  
+  "filters_section": {
+    "message" : "Filtres",
+    "description" : "Filtres additionnels"
+  },
+  
+  "global_title": {
+    "message": "Exécute les filtres indépendamment des canaux",
+    "description": "Exécute les filtres indépendamment des canaux"
+  },
+  
+  "global_filter_blacklist_active": {
+    "message" : "Activer la liste noire du filtre global",
+    "description" : "Activer la liste noire du filtre global"
+  },
+  
+  "global_filter_whitelist_active": {
+    "message": "Activer la liste blanche du filtre global",
+    "description": "Activer la liste blanche du filtre global"
+  }
+}
