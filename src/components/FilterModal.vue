@@ -10,6 +10,32 @@
 			<span class="btn filterbtn" @click="saveFilterModal()" v-bind:title="getMessage('save')">Save</span>
 			<span class="btn filterbtn" @click="closeFilterModal()" v-bind:title="getMessage('close')">Close</span>
 		</div>
+        <div class="range_container">
+          <div class="form_control" v-bind:class="{ 'greyscale': !timeActive }">
+            <label v-bind:title="getMessage('switch_title')"><input type="checkbox" v-model="timeActive" @click="switched()"></label>
+            <p style="margin: 1%;">{{this.getMessage('time_range_message')}}</p>
+            <div>
+                Min
+                <input
+                type="time"
+                v-model="fromTime"
+                min="00:00:00" 
+                max="12:00:00"
+                step='1'
+                />
+            </div>
+            <div>
+                Max
+                <input
+                type="time"
+                v-model="toTime"
+                min="00:00:00" 
+                max="12:00:00"
+                step='1'
+                />
+            </div>
+          </div>
+        </div>
 		<ul class="removeBullets" v-for="(filter, idx) in filterList" :key="idx">
             <li>
                 {{filter}}
@@ -28,16 +54,33 @@ export default {
     data() {
         return {
             selection: '',
+            fromTime : this.secondsToTime(this.channel.fromValue || 0),
+            toTime: this.secondsToTime(this.channel.toValue || 43200),
+            timeActive: this.channel.isTimeRangeActive !== undefined ? this.channel.isTimeRangeActive : false,
         }
-    },
-    
+    },    
     props: {
         channel: {
             type: Object,
             required: true
         }
     },
-    
+    watch: {
+      fromTime(newVal){
+        this.channel.fromValue = this.timeToSeconds(newVal);
+        this.fromValue = this.secondsToTime(newVal);
+        if (this.channel.fromValue >= this.toValue - 1) {
+          this.toValue = this.channel.fromValue;
+        }
+      },
+      toTime(newVal){
+        this.channel.toValue = this.timeToSeconds(newVal);
+        this.toValue = this.channel.toValue;
+        if (this.channel.toValue <= this.fromValue + 1) {
+          this.fromValue = this.channel.toValue;
+        }
+      }
+    },
     computed: {
         filterList:{
             get () {
@@ -79,6 +122,20 @@ export default {
     },
     
     methods: {
+        secondsToTime(seconds) {
+          const hours = Math.floor(seconds / 3600);
+          const minutes = Math.floor((seconds % 3600) / 60);
+          const remainingSeconds = seconds % 60;
+          const result = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+          return result;
+        },
+        timeToSeconds(time) {
+          const [hours, minutes, seconds] = time.split(':');
+          let result = hours != undefined ? parseInt(hours, 10) * 60 * 60 : 0;
+          result += minutes != undefined ? parseInt(minutes, 10) * 60 : 0;
+          result += minutes != undefined ? parseInt(seconds, 10) : 0;
+          return result;
+        },
         extractPrimaryColors(img) {
             const canvas = document.createElement("canvas");
             canvas.width = img.width;
@@ -142,18 +199,44 @@ export default {
         
         saveFilterModal()
         {
+            this.channel.fromValue = this.timeToSeconds(this.fromTime);
+            this.channel.toValue = this.timeToSeconds(this.toTime);
             this.$emit('saveFilterModal', this.channel);
         },
         
         getMessage(msg)
         {
             return chrome.i18n.getMessage(msg);
-        }
+        },
+        switched()
+        {
+          console.log("this.channel.isTimeRangeActive" + this.channel.isTimeRangeActive);
+          this.timeActive = !this.timeActive;
+          this.channel.isTimeRangeActive = this.timeActive;
+        },
     }
 }
 </script>
 
 <style scoped>
+.range_container {
+  display: flex;
+  flex-direction: column;
+  width: 99%;
+  margin-top: 1%;
+}
+
+.form_control {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+}
+
+#fromSlider {
+  height: 0;
+  z-index: 1;
+}
+
 .modal {
   position: fixed; /* Stay in place */
   z-index: 1; /* Sit on top */
@@ -223,5 +306,10 @@ export default {
 
 .close:hover {
   background-color: #CFF2F2;
+}
+
+.greyscale{
+  filter : grayscale(90%);
+	opacity: 0.5;
 }
 </style>

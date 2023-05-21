@@ -117,5 +117,14 @@
   "global_filter_whitelist_active": {
     "message": "Aktiviere globale Filter-Whitelist",
     "description": "Aktiviere globale Filter-Whitelist"
+  },  
+  "time_range_message":{
+    "message": "Zeitbereichsfilter",
+    "description" : "Explains the message on screen for the time range filter"
+  },
+
+  "youtube_short_deactivation":{
+    "message": "Klicken Sie hier, um youtube shorts zu deaktivieren. Wenn rot, dann ist der Filter aktiv",
+    "description" : "Explains the message on screen for the dissabling youtube shorts"
   }
 }

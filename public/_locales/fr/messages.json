@@ -117,5 +117,14 @@
   "global_filter_whitelist_active": {
     "message": "Activer la liste blanche du filtre global",
     "description": "Activer la liste blanche du filtre global"
+  },  
+  "time_range_message":{
+    "message": "Filtre de durée",
+    "description" : "Explains the message on screen for the blacklist time range filter"
+  },
+
+  "youtube_short_deactivation":{
+    "message": "Cliquez ici pour désactiver youtube shorts. Si rouge, le filtre est actif",
+    "description" : "Explains the message on screen for the dissabling youtube shorts"
   }
 }

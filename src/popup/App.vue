@@ -77,6 +77,9 @@ export default {
         {
             chrome.storage.local.get(null, items => {
                 const allObjects = Object.values(items);
+                for(const channel of allObjects){
+                    this.verifyChannelAttributes(channel);
+                }
                 var config = allObjects.find(element => element.name === "Youtube-subscription-filter-configuration");
                 if(config !== undefined)
                 {
@@ -297,6 +300,37 @@ export default {
         getMessage(msg)
         {
             return chrome.i18n.getMessage(msg);
+        },
+
+        verifyChannelAttributes(channel) {
+            const Channel = {
+                channelName: "",
+                blacklist: [],
+                whitelist: [],
+                isBlacklistActive: true,
+                iconHref: "",
+                get banner() {
+                    return this.iconHref;
+                },
+                isActive: false,
+                href: "",
+                switchedOff: false,
+                position: null,
+                tabPage: 0,
+                fromValue: 0,
+                toValue: 43200,
+                isTimeRangeActive: false,
+                shortsActive: false
+
+            };
+            
+            for (const key in Channel) {
+                if (!(key in channel)) {
+                    console.log("verifyChannelAttributes" + JSON.stringify(channel));
+                    channel[key] = Channel[key];
+                }
+            }
+            return channel;
         }
     },
 }

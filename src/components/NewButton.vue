@@ -12,7 +12,7 @@
             <li v-for="(channel, idx) in matches" :key="idx"
                @click="suggestionClick(idx)"
                >
-               <div class="selection_container" v-bind:style="{ backgroundImage: calcBackground(channel) }"
+               <div class="selection_container"
                @mouseover="current = idx"
                @mouseleave="current = null"
                @mousedown="enter"
@@ -109,12 +109,6 @@ export default {
             this.isInputActive = !this.isInputActive;
         },
         
-        calcBackground(channel)
-        {
-            var urlString = 'url(' + channel.banner + ')';
-			return "linear-gradient(to left, rgba(255,255,255,0.2) 6%,rgba(255,255,255,1))," + urlString;
-        },
-        
         calcIcon(channel)
         {
 			return channel.iconHref;
@@ -131,7 +125,7 @@ export default {
 <style scoped>
 
 .new{
-    width: 73.8%;
+    width: 347px;
     height: 15px;
     margin-left: 5.8%;
     margin-top: 0.5%;
@@ -145,9 +139,10 @@ export default {
 .subscriber {
     text-align: center;
     cursor: pointer;
-    padding: 0.56% 0% 0.56% 0%;
+    padding-left: 1%;
+    padding-right: 1%;
     border: none;
-    width: 75.8%;
+    width: 347px;
     margin-left: 5.8%;
     margin-top: 0.5%;
     margin-bottom: 0.3%;
@@ -188,7 +183,7 @@ export default {
 }
 
 .autocomplete {
-    width: 75.8%;
+    width: 352px;
     padding-left: 5.8%;
     margin-block-start: 0;
     margin-bottom: 1%;
@@ -198,6 +193,7 @@ export default {
 {
     padding: 1% 1% 1% 1%;
     height: 2em;
+    background-color:white;
 }
 
 .selection_font
@@ -205,21 +201,6 @@ export default {
 	font: 400 13.3333px Arial;
     padding-top: 1.5%;
     padding-left: 8%;
-}
-
-@supports (-moz-appearance:none) {
-	
-    .new {
-		width: 73.4%;
-	}
-	
-	.subscriber{
-        width: 75.3%;
-    }
-    
-    .autocomplete{
-        width: 75.3%;
-    }
 }
 
 </style>

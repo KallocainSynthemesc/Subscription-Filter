@@ -17,6 +17,23 @@
                         <div class="button dot" v-bind:title="getMessage('dot_title')" @click="changeActiveFilterList(channel)">🞇</div>
                     </td>
                     <td><div class="button trash" v-bind:title="getMessage('trash_title')" @click="removeFilter(channel)">&#x1f5d1;</div></td>
+                    <td>
+                        <div v-bind:class="{'shortRed': channel.shortsActive}" class="button dot" v-bind:title="getMessage('youtube_short_deactivation')" @click="changeShortsActive(channel)">
+                            <svg
+                                viewBox="0 0 98.94 122.88"
+                                style="enable-background:new 0 0 98.94 122.88; width:64%;"
+                                xml:space="preserve"
+                                version="1.1"
+                                id="svg12"
+                                xmlns="http://www.w3.org/2000/svg"
+                                xmlns:svg="http://www.w3.org/2000/svg"><defs
+                                    id="defs16" /><path
+                                    d="M 61.803414,29.616395 C 70.798352,24.928782 81.935311,28.3436 86.66949,37.245407 91.403669,46.147216 87.950047,57.16 78.955107,61.847612 l -7.396182,3.888235 c 6.371738,0.232829 12.44856,3.733016 15.630549,9.716707 4.734178,8.901808 1.288317,19.914594 -7.714382,24.602206 l -39.441139,20.72171 c -8.994938,4.68763 -20.131898,1.27281 -24.866077,-7.629 C 10.4337,104.24566 13.88732,93.232886 22.882259,88.545274 l 7.396183,-3.888237 C 23.906704,84.42421 17.829881,80.924022 14.647893,74.940332 9.9137159,66.038525 13.367337,55.025739 22.362275,50.338126 Z M 40.515133,60.52049 64.387808,75.258531 40.515133,89.926723 Z"
+                                    style="clip-rule:evenodd;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:0.776094"
+                                    id="path10" />
+                            </svg>
+                        </div>
+                    </td>
                     <td><label class="switch" v-bind:title="getMessage('switch_title')"><input class="square" type="checkbox" v-model="channel.switchedOff" @click="switched(channel)"><span class="slider round"></span></label></td>
                 </tr>
             </table>
@@ -37,7 +54,7 @@ export default {
             mousePositiony: 0,
             isDraggingStarted: false,
             placeholder: null,
-            draggingEle: null
+            draggingEle: null,
         }
   },
   props: {
@@ -116,6 +133,13 @@ export default {
             channel.isBlacklistActive = !channel.isBlacklistActive //send event to parent;
             this.$emit('saveChanneInStore', channel);
             return channel.isBlacklistActive;
+        },
+
+        changeShortsActive(channel)
+        {
+            console.log("changeShortsActive" + JSON.stringify(channel));
+            channel.shortsActive = !channel.shortsActive;
+            this.$emit('saveChanneInStore', channel);
         },
         
         isAbove(nodeA, nodeB) {
@@ -287,7 +311,7 @@ export default {
   cursor: pointer;
   border: none;
   height: 23px;
-  width: 237px;
+  width: 240px;
   text-align: left;
   text-indent:3%;
 }
@@ -305,6 +329,9 @@ export default {
     to {background-size: 300%;}
 }
 
+.shortRed{
+    background-color: #FF0000 !important;
+}
 .blacklist:hover {
   background-color: #0F3B3D;
 }
@@ -312,8 +339,8 @@ export default {
 .blacklist {
   background-color: #181818;
   color: white;
-  height: 20px;
-  width: 133px;
+  height: 21px;
+  width: 110px;
   padding-top: 3.5%;
 }
 
@@ -324,8 +351,8 @@ export default {
 .whitelist {
   padding-top: 3.5%;
   background-color: white;
-  height: 20px;
-  width: 133px;
+  height: 21px;
+  width: 110px;
 }
 
 .dot {
