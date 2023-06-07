@@ -261,12 +261,22 @@ function manipulatieYoutubeHtml() {
   var browseContainer = getBrowseContainer();
   var primary = browseContainer.querySelector("[id=primary]");
   let items = primary.querySelectorAll("[id=items]");
-  for(let item of items){
-    let itemsChildren = item.children;
-    var i;
-    for (i = 0; i < itemsChildren.length; i++) {
-      const dismissible = itemsChildren[i].querySelector("[id=dismissible]");
+  if(items.length === 0){
+    items = primary.getElementsByTagName("ytd-rich-grid-row");
+    const rich_item = primary.getElementsByTagName("ytd-rich-item-renderer");
+    for(const item of rich_item){
+      const dismissible = item.querySelector("[id=dismissible]");
       processChannelMetadata(dismissible);
+    }
+
+  }else{
+    for(let item of items){
+      let itemsChildren = item.children;
+      var i;
+      for (i = 0; i < itemsChildren.length; i++) {
+        const dismissible = itemsChildren[i].querySelector("[id=dismissible]");
+        processChannelMetadata(dismissible);
+      }
     }
   }
 }
@@ -316,7 +326,7 @@ function processChannelMetadata(dismissible) {
   
     setVisiblity(dismissible, shouldHide);
   }).catch((error) => {
-    console.error(error);
+    console.error("Error retrieving channel from storage:" + error);
   });
 
 }
@@ -427,8 +437,31 @@ function isShortsVideo(linkelement){
   return linkelement.href.includes('/shorts/');
 }
 
-function setVisiblity(parentNodeElem, shouldHide) {
-  parentNodeElem.parentNode.style.display = shouldHide ? "none" : "block";
+function setVisiblity(dismissible, shouldHide) {
+  const parentNode = dismissible.parentNode;
+  if(parentNode.nodeName === "YTD-GRID-VIDEO-RENDERER"){
+    dismissible.parentNode.style.display = shouldHide ? "none" : "block";
+  }
+  else{
+    const parent = getParentByTagName(dismissible, "ytd-rich-item-renderer");
+    parent.style.display = shouldHide ? "none" : "block";
+  }
+}
+
+function getParentByTagName(node, tagname) {
+	var parent;
+	if (node === null || tagname === '') return;
+	parent  = node.parentNode;
+	tagname = tagname.toUpperCase();
+
+	while (parent.tagName !== "HTML") {
+		if (parent.tagName === tagname) {
+			return parent;
+		}
+		parent = parent.parentNode;
+	}
+
+	return parent;
 }
 
 function isEmptyArray(obj) {
