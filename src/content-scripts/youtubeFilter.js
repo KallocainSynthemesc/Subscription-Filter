@@ -260,8 +260,13 @@ function manipulatieYoutubeHtml() {
   console.log("start manipulatieYoutubeHtml()");
   var browseContainer = getBrowseContainer();
   var primary = browseContainer.querySelector("[id=primary]");
-  let items = primary.querySelectorAll("[id=items]");
-  if(items.length === 0){
+  var items = primary.querySelectorAll("[id=items]");
+  if(items == undefined || items.length === 0){
+    let shorts = primary.getElementsByTagName("ytd-rich-section-renderer");
+    console.log(shorts);
+    for(let section of shorts){
+      section.remove();
+    }
     items = primary.getElementsByTagName("ytd-rich-grid-row");
     const rich_item = primary.getElementsByTagName("ytd-rich-item-renderer");
     for(const item of rich_item){
@@ -269,7 +274,7 @@ function manipulatieYoutubeHtml() {
       processChannelMetadata(dismissible);
     }
 
-  }else{
+  }else{ //legacy youtube
     for(let item of items){
       let itemsChildren = item.children;
       var i;
@@ -434,6 +439,9 @@ function applyConfiguration(parentNodeElem) {
 }
 
 function isShortsVideo(linkelement){
+  if(linkelement.href === undefined){
+    return linkelement.parentElement.href.includes('/shorts/');
+  }
   return linkelement.href.includes('/shorts/');
 }
 
