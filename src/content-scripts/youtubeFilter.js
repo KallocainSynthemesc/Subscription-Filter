@@ -1,8 +1,3 @@
-var saveObj = {};
-var rerun = true;
-var pageNavigation;
-var configuration;
-
 function Channel() {
   this.channelName = "";
   this.blacklist = [];
@@ -35,108 +30,284 @@ function Configuration() {
   };
 }
 
-(function () {
-  function script() {
-    var originalFetch = window.fetch;
-    window.fetch = (input, init) => {
-      return originalFetch(input, init).then((response) => {
-        return new Promise((resolve) => {
-          const url = response.url;
-          if (-1 !== url.indexOf("/youtubei/v1/")) {
-            response
-              .clone()
-              .json()
-              .then((json) => {
-                if (-1 !== input.url.indexOf("/youtubei/v1/guide")) {
-                  document
-                    .querySelector("html")
-                    .setAttribute("youtube-filter-data", JSON.stringify(json));
-                  console.log("youtube-filter-data is set successfully");
-                  const ytEvent = new Event("youtube-filter-data-event");
-                  window.dispatchEvent(ytEvent);
-                } else if (
-                  -1 !==
-                  input.url.indexOf(
-                    "/youtubei/v1/notification/get_unseen_count"
-                  )
-                ) {
-                  console.log("youtube-filter-data is not set");
-                  const ytEvent = new Event("youtube-unseen-event");
-                  window.dispatchEvent(ytEvent);
-                }
-              });
-          }
-          resolve(response);
-        });
-      });
-    };
+function observeYtData() {
+  let ytInitialData = window.ytInitialData;
+
+  Object.defineProperty(window, 'ytInitialData', {
+    get: function () {
+      return ytInitialData;
+    },
+    set: function (newValue) {
+      if (newValue !== ytInitialData) {
+        ytInitialData = filterInitialData(newValue);
+      }
+    },
+  });
+  
+  function filterInitialData(initialData){
+    const isListView = hasProperty(contentFromInitialData(initialData), "sectionListRenderer")
+    let contents;
+    if(isListView){
+      contents = listViewFilter(contentFromInitialData(initialData).sectionListRenderer.contents);
+      contentFromInitialData(initialData).sectionListRenderer.contents = contents;
+    }
+    else{
+      contents = gridViewFilter(contentFromInitialData(initialData).richGridRenderer.contents);
+      contentFromInitialData(initialData).richGridRenderer.contents = contents;
+    }
+    console.log('new contents',contents);
+    return initialData;
   }
 
-  function inject(fn) {
-    const script = document.createElement("script");
-    script.text = `(${fn.toString()})();`;
-    document.documentElement.appendChild(script);
-    console.log("proxy fetch is injected into main-page");
+  function contentFromInitialData(initialData){
+    return initialData.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer.content
   }
 
-  inject(script);
-})();
-
-window.addEventListener("youtube-filter-data-event", exec);
-
-window.addEventListener("youtube-unseen-event", exec);
-
-window.addEventListener("scroll", function () {
-  getOrCreateConfiguration(manipulatieYoutubeHtml());
-});
-
-var interval = setInterval(checkNavigationLoad, 1000);
-
-function checkNavigationLoad() {
-  pageNavigation = document.getElementsByTagName(
-    "yt-page-navigation-progress"
-  )[0];
-
-  if (pageNavigation !== undefined) {
-    stopInterval();
-    var observer = new MutationObserver(function () {
-      if (pageNavigation.style.display !== "hidden") {
-        var currentLoadingProgress =
-          pageNavigation.getAttribute("aria-valuenow");
-        if (currentLoadingProgress === "100") {
-          console.log("End checkNavigationLoad: navigation done, page loaded");
-          exec();
+  function gridViewFilter(contents) {
+    console.log('ytInitialData contents', contents.length);
+    console.log("ytinitialData local storage filter data: ", window.ytfilterStoredObjects);
+  
+    return contents.filter((content) => {
+      if (hasProperty(content, "richItemRenderer")) {
+        const isAd = hasProperty(content.richItemRenderer.content, "adSlotRenderer");
+        if(isAd){
+          return true;
+        }
+        return !applyfilter(content.richItemRenderer.content.videoRenderer);
+      } else if (hasProperty(content, "richSectionRenderer")) {
+        if (hasProperty(content.richSectionRenderer.content, "richShelfRenderer")) {
+          console.log("filter out whole shorts section.");
+          return false;
         }
       }
+      return true;
     });
-    observer.observe(pageNavigation, {
-      attributes: true,
-      childList: true,
+  }
+
+  function listViewFilter(contents){
+    console.log('ytInitialData contents',contents.length);
+    console.log("ytinitialData local storage filter data: ", window.ytfilterStoredObjects);
+    const menu = contents[0].itemSectionRenderer.contents[0].shelfRenderer.menu;
+    const newContents = contents.filter((content) => !shouldHide(content));
+    newContents[0].itemSectionRenderer.contents[0].shelfRenderer.menu = menu;
+    return newContents;
+  }
+
+  function shouldHide(content){
+    if(hasProperty(content, "itemSectionRenderer")){
+      const section = content.itemSectionRenderer.contents[0];
+      if(hasProperty(section, "reelShelfRenderer")){
+        return true;
+      }
+      return applyfilter(section.shelfRenderer.content.expandedShelfContentsRenderer.items[0].videoRenderer);
+    }
+    return false;
+  }
+
+  var originalFetch = window.fetch;
+  window.fetch = (input, init) => {
+    return originalFetch(input, init).then(async (response) => {
+      response.text = function() {
+        return Response.prototype.text.call(this).then(processJSON);
+      };
+      return response;
     });
+  };
+
+  function processJSON(json) {
+    const parsedJSON = JSON.parse(json);
+    if (hasProperty(parsedJSON, "items")) {
+      saveGuidDataInHtml(parsedJSON);
+    } else if (
+      hasProperty(parsedJSON, "onResponseReceivedActions") &&
+      hasProperty(parsedJSON.onResponseReceivedActions[0],"appendContinuationItemsAction")
+    ) {
+      const result = filterScrolledNewContent(parsedJSON);
+      console.log("processJSON filtering result: ", 
+      );
+      parsedJSON.onResponseReceivedActions[0].appendContinuationItemsAction.continuationItems =
+        result;
+    }
+    else if(hasProperty(parsedJSON, "contents") && hasProperty(parsedJSON.contents, "twoColumnBrowseResultsRenderer")){
+      parsedJSON.contents = filterInitialData(parsedJSON).contents;
+    }
+    const result = JSON.stringify(parsedJSON);
+    return new Promise((resolve) => {
+      resolve(result);
+    });
+  }
+
+  function hasProperty(obj, property){
+    return Object.prototype.hasOwnProperty.call(obj, property);
+  }
+
+  function totalSeconds(time) {
+    const timeArr = time.split(":");
+    let totalSeconds = 0;
+    
+    if (timeArr.length === 3) {
+      totalSeconds += parseInt(timeArr[0]) * 3600;
+      totalSeconds += parseInt(timeArr[1]) * 60;
+      totalSeconds += parseInt(timeArr[2]);
+    } else if (timeArr.length === 2) {
+      totalSeconds += parseInt(timeArr[0]) * 60;
+      totalSeconds += parseInt(timeArr[1]);
+    } else if(timeArr.length === 1){
+      totalSeconds += parseInt(timeArr[0]);
+    }
+    else{
+      throw new Error("Invalid time format. Expected hh:mm:ss or mm:ss.");
+    }
+  
+    return totalSeconds;
+  }
+
+  function applyfilter(vidRender) {
+    if(vidRender === undefined){
+      //only happens on firefox on the homepage, not sure why. Debugging on firefox is hell.
+      //even the Firefox developper edition does not need this check. Weird stuff.
+      return false;
+    }
+    const channelName = vidRender.ownerText.runs[0].text;
+    const videoTitle = vidRender.title.runs[0];
+    const duration = (hasProperty(vidRender, "lengthText")) ? vidRender.lengthText.simpleText : null; //live videos have no duration
+    const resumePlayback = vidRender.thumbnailOverlays.find(
+      (thumb) => Object.hasOwnProperty.call(thumb, "thumbnailOverlayResumePlaybackRenderer")
+    )
+    var shouldHide = false;
+    
+    const storedObjects = window.ytfilterStoredObjects
+    
+    const channelFilter = storedObjects.filter(
+      (channel) => channel.isActive && (channel.switchedOff === undefined || channel.switchedOff === false)
+      );
+      const configuration = storedObjects.find(element => element.name === "Youtube-subscription-filter-configuration");
+      
+      if(configuration !== undefined){
+        shouldHide = applyConfigurationGlobalFilter(videoTitle, configuration);
+      }
+      if(!shouldHide){
+      for(const filter of channelFilter){
+        if(filter.channelName === channelName){
+          if (filter.isBlacklistActive) {
+            shouldHide = listContainsTitle(videoTitle, filter.blacklist);
+            if (!shouldHide && filter.isTimeRangeActive && duration != null) {
+              shouldHide = checkRange(totalSeconds(duration), filter.fromValue, filter.toValue);
+            }
+          } else{
+            shouldHide = !listContainsTitle(videoTitle, filter.whitelist);
+            if (!shouldHide && filter.isTimeRangeActive && duration != null) {
+              shouldHide = checkRange(totalSeconds(duration), filter.fromValue, filter.toValue) === false;
+            }
+          }
+          break;
+        }
+      }
+  
+      if (!shouldHide && configuration && configuration.hideWatched && resumePlayback) {
+        const durWatched = resumePlayback.thumbnailOverlayResumePlaybackRenderer.percentDurationWatched;
+        shouldHide = checkWatchedPercentage(durWatched, configuration);
+      }
+    }
+    
+    return shouldHide;
+  }
+
+  function listContainsTitle(videoTitle, list) {
+    if(!isEmptyArray(list)){
+      for (const item of list) {
+        if (videoTitle.text.toLowerCase().includes(item.toLowerCase())){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function isEmptyArray(obj) {
+    if (obj != null && obj.length > 0) {
+      return JSON.stringify(obj) === JSON.stringify([""]);
+    }
+    return true;
+  }
+
+  function checkRange(seconds, rangeStart, rangeStop) {
+    const rangeStartInSeconds = rangeStart;
+    const rangeStopInSeconds = rangeStop;
+    const result =
+    seconds >= rangeStartInSeconds && seconds <= rangeStopInSeconds;
+    return result;
+  }
+  
+  function checkWatchedPercentage(percentDurationWatched, configuration) {
+    return percentDurationWatched >= parseInt(configuration.watchedPercentage);
+  }
+  
+  function applyConfigurationGlobalFilter(videoTitle, configuration) {
+    if (configuration.globalFilter.isBlacklistActive) {
+      return listContainsTitle(videoTitle, configuration.globalFilter.blacklist);
+    }
+    return listContainsTitle(videoTitle, configuration.globalFilter.whitelist) === false;
+  }
+  
+  function saveGuidDataInHtml(json){
+    document
+      .querySelector("html")
+      .setAttribute("youtube-filter-data", JSON.stringify(json));
+    console.log("youtube-filter-data is set successfully");
+    const ytEvent = new Event("youtube-filter-data-event");
+    window.dispatchEvent(ytEvent);
+  }
+
+  function filterScrolledNewContent(json){
+    let newContents = new Array();
+    let contents = json.onResponseReceivedActions[0].appendContinuationItemsAction.continuationItems;
+    let lastItem;
+    for(let i=0; i < contents.length; i++){
+      let shouldHide = false;
+      if(hasProperty(contents[i], "continuationItemRenderer")){
+        lastItem = contents[i];
+      }
+      else{
+        if(hasProperty(contents[i], "richItemRenderer")){
+          shouldHide = applyfilter(contents[i].richItemRenderer.content.videoRenderer);
+        }
+        else if(hasProperty(contents[i], "itemSectionRenderer")){
+          const shelf = contents[i].itemSectionRenderer.contents[0].shelfRenderer;
+          shouldHide = applyfilter(shelf.content.expandedShelfContentsRenderer.items[0].videoRenderer);
+        }
+        if(shouldHide === false){
+          newContents.push(contents[i]);
+        }
+      }
+    }
+    if(lastItem !== undefined){
+      newContents.push(lastItem);
+    }
+    return newContents;
   }
 }
 
-function stopInterval() {
-  clearInterval(interval);
+function inject(fn, fnname) {
+  const script = document.createElement("script");
+  script.text = `(${fn.toString()})();`;
+  document.documentElement.appendChild(script);
+  console.log(fnname + " is injected into main-page");
 }
 
-async function exec() {
-    if (window.location.href.indexOf("/feed/subscriptions") != -1) {
-      console.log("start exec()");
-      getOrCreateConfiguration(fetchData());
-  }
-}
-
-function getOrCreateConfiguration(cb) {
-  getOrCreateObjectCallback("Youtube-subscription-filter-configuration", new Configuration())
-  .then(value => {
-    configuration = value;
-    cb && cb();
-  })
-  .catch(error => {
-    console.log(error);
+function injectStoredObjects(){
+  chrome.storage.local.get(null, items => {
+    const script = document.createElement("script");
+    script.text = `window.ytfilterStoredObjects = ${JSON.stringify(Object.values(items))}`;
+    document.documentElement.appendChild(script);
+    console.log("stored objects injected into main-page");
   });
 }
+
+injectStoredObjects();
+inject(observeYtData, "observeYtData");
+
+window.addEventListener("youtube-filter-data-event", processInitAndManip);
 
 async function getChannel(name){
     const item = await new Promise((resolve) => {
@@ -186,33 +357,33 @@ function getOrCreateObjectCallback(name, templateObj) {
   });
 }
 
-function fetchData() {
-  console.log("start fetchData(), rerun=" + rerun);
-  getOrCreateConfiguration(processInitAndManip);
-}
-
 function processInitAndManip(){
-  if (rerun === true) {
-    var initialData = document
-      .querySelector("html")
-      .getAttribute("youtube-filter-data");
-    console.log("initialData=" + initialData);
-    if (!isEmptyArray(initialData)) {
-      rerun = false;
-      processInitialData(initialData);
+  var initialData = document
+    .querySelector("html")
+    .getAttribute("youtube-filter-data");
+  if (!isEmptyArray(initialData)) {
+    processInitialData(initialData);
+    getOrCreateObjectCallback("Youtube-subscription-filter-configuration", new Configuration())
+    .then(value => {
+      console.log("configuration" , value);
       chrome.runtime.sendMessage({
         message: "activate_icon",
       });
-    }
+    })
   }
-  manipulatieYoutubeHtml();
+}
+
+function isEmptyArray(obj) {
+  if (obj != null && obj.length > 0) {
+    return JSON.stringify(obj) === JSON.stringify([""]);
+  }
+  return true;
 }
 
 function processInitialData(initialData) {
   var jsonInitialData = JSON.parse(initialData);
   var items = jsonInitialData.items;
   items.forEach(getSubscriptionSection);
-  saveChannels(saveObj);
 }
 
 function getSubscriptionSection(item) {
@@ -242,7 +413,6 @@ function getSubscriptionsMetaData(item) {
             item.guideEntryRenderer.navigationEndpoint.commandMetadata.webCommandMetadata.url;
           channel.iconHref = item.guideEntryRenderer.thumbnail.thumbnails[0].url;
           saveChannel(channelName, channel);
-          saveObj[channelName] = channel;
         }
       }).catch((error) => {
         console.error(error);
@@ -254,237 +424,6 @@ function getSubscriptionsMetaData(item) {
     var expandItems = item.guideCollapsibleEntryRenderer.expandableItems;
     expandItems.forEach(getSubscriptionsMetaData);
   }
-}
-
-function manipulatieYoutubeHtml() {
-  console.log("start manipulatieYoutubeHtml()");
-  var browseContainer = getBrowseContainer();
-  var primary = browseContainer.querySelector("[id=primary]");
-  var items = primary.querySelectorAll("[id=items]");
-  if(items == undefined || items.length === 0){
-    let shorts = primary.getElementsByTagName("ytd-rich-section-renderer");
-    console.log(shorts);
-    for(let section of shorts){
-      section.remove();
-    }
-    items = primary.getElementsByTagName("ytd-rich-grid-row");
-    const rich_item = primary.getElementsByTagName("ytd-rich-item-renderer");
-    for(const item of rich_item){
-      const dismissible = item.querySelector("[id=dismissible]");
-      processChannelMetadata(dismissible);
-    }
-
-  }else{ //legacy youtube
-    for(let item of items){
-      let itemsChildren = item.children;
-      var i;
-      for (i = 0; i < itemsChildren.length; i++) {
-        const dismissible = itemsChildren[i].querySelector("[id=dismissible]");
-        processChannelMetadata(dismissible);
-      }
-    }
-  }
-}
-
-function processChannelMetadata(dismissible) {
-  var meta = dismissible.querySelector("[id=meta]");
-  var channelName = meta
-    .querySelector("[id=channel-name]")
-    .querySelector("[id=text]").children[0];
-  var videoTitle = meta.querySelector("[id=video-title]");
-  var shouldHide = false;
-
-  shouldHide = applyConfigurationGlobalFilter(videoTitle);
-  getChannel(channelName.textContent).then((result) => {
-    const channel = result[channelName.textContent];
-    if (!shouldHide && channel !== undefined ) {
-      const isChannelprocessingNeccessary = channel.isActive && (channel.switchedOff === undefined || channel.switchedOff === false);
-      
-      if (isChannelprocessingNeccessary) {
-        if (channel.isBlacklistActive) {
-          shouldHide = applyBlacklistOnChannelElement(videoTitle,channel.blacklist);
-          if (!shouldHide && channel.isTimeRangeActive) {
-            let seconds = extractSecondsFromElement(dismissible);
-            if(seconds !== null){
-              shouldHide = checkRange(seconds, channel.fromValue, channel.toValue);
-            }
-          }
-        } else {
-          shouldHide = applyWhitelistOnChannelElement(videoTitle,channel.whitelist);
-          if (!shouldHide && channel.isTimeRangeActive) {
-            let seconds = extractSecondsFromElement(dismissible);
-            if(seconds !== null){
-              shouldHide = checkRange(seconds, channel.fromValue, channel.toValue) === false;
-            }
-          }
-        }
-      }
-    }
-  
-    if (!shouldHide && configuration.hideWatched) {
-      shouldHide = applyConfiguration(dismissible);
-    }
-
-    if(!shouldHide && channel.shortsActive !== undefined && channel.shortsActive){
-      shouldHide = isShortsVideo(videoTitle);
-    }
-  
-    setVisiblity(dismissible, shouldHide);
-  }).catch((error) => {
-    console.error("Error retrieving channel from storage:" + error);
-  });
-
-}
-
-function applyConfigurationGlobalFilter(videoTitle) {
-  let shouldHide = false;
-  if (configuration.globalFilter.isBlacklistActive) {
-    shouldHide = applyBlacklistOnChannelElement(
-      videoTitle,
-      configuration.globalFilter.blacklist
-    );
-  } else {
-    shouldHide = applyWhitelistOnChannelElement(
-      videoTitle,
-      configuration.globalFilter.whitelist
-    );
-  }
-  return shouldHide;
-}
-
-function extractSecondsFromElement(dismissible) {
-  let time = dismissible.querySelector(
-    "ytd-thumbnail-overlay-time-status-renderer"
-  );
-  if(time !== null){
-    let timeText = time.querySelector("span").textContent;
-    let seconds = calculateTotalSeconds(timeText);
-    return seconds;
-  }
-  return null
-}
-
-function applyBlacklistOnChannelElement(videoTitle, blacklist) {
-  var k;
-  for (k = 0; k < blacklist.length; k++) {
-    if (
-      !isEmptyArray(blacklist) &&
-      videoTitle.textContent.toLowerCase().includes(blacklist[k].toLowerCase())
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function calculateTotalSeconds(time) {
-  const timeArr = time.split(":");
-  let totalSeconds = 0;
-
-  if (timeArr.length === 3) {
-    totalSeconds += parseInt(timeArr[0]) * 3600;
-    totalSeconds += parseInt(timeArr[1]) * 60;
-    totalSeconds += parseInt(timeArr[2]);
-  } else if (timeArr.length === 2) {
-    totalSeconds += parseInt(timeArr[0]) * 60;
-    totalSeconds += parseInt(timeArr[1]);
-  } else if(timeArr.length === 1){
-    totalSeconds += parseInt(timeArr[0]);
-  }
-  else{
-    throw new Error("Invalid time format. Expected hh:mm:ss or mm:ss.");
-  }
-
-  return totalSeconds;
-}
-
-function checkRange(seconds, rangeStart, rangeStop) {
-  const rangeStartInSeconds = rangeStart;
-  const rangeStopInSeconds = rangeStop;
-  const result =
-    seconds >= rangeStartInSeconds && seconds <= rangeStopInSeconds;
-  return result;
-}
-
-function applyWhitelistOnChannelElement(videoTitle, whitelist) {
-  var isDelete = true;
-  var j;
-  for (j = 0; j < whitelist.length; j++) {
-    if (
-      videoTitle.textContent.toLowerCase().includes(whitelist[j].toLowerCase())
-    ) {
-      isDelete = false;
-      break;
-    }
-  }
-
-  return isDelete;
-}
-
-function applyConfiguration(parentNodeElem) {
-  var thumbnail = parentNodeElem.querySelector("[id=thumbnail]");
-  var progress = thumbnail.querySelector("[id=progress]");
-
-  if (progress !== null) {
-    var elemProgress = progress.style.width.substring(
-      0,
-      progress.style.width.length - 1
-    );
-    if (parseInt(elemProgress) >= parseInt(configuration.watchedPercentage)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function isShortsVideo(linkelement){
-  if(linkelement.href === undefined){
-    return linkelement.parentElement.href.includes('/shorts/');
-  }
-  return linkelement.href.includes('/shorts/');
-}
-
-function setVisiblity(dismissible, shouldHide) {
-  const parentNode = dismissible.parentNode;
-  if(parentNode.nodeName === "YTD-GRID-VIDEO-RENDERER"){
-    dismissible.parentNode.style.display = shouldHide ? "none" : "block";
-  }
-  else{
-    const parent = getParentByTagName(dismissible, "ytd-rich-item-renderer");
-    parent.style.display = shouldHide ? "none" : "block";
-  }
-}
-
-function getParentByTagName(node, tagname) {
-	var parent;
-	if (node === null || tagname === '') return;
-	parent  = node.parentNode;
-	tagname = tagname.toUpperCase();
-
-	while (parent.tagName !== "HTML") {
-		if (parent.tagName === tagname) {
-			return parent;
-		}
-		parent = parent.parentNode;
-	}
-
-	return parent;
-}
-
-function isEmptyArray(obj) {
-  if (obj != null && obj.length > 0) {
-    return JSON.stringify(obj) === JSON.stringify([""]);
-  }
-  return true;
-}
-
-function saveChannels(channelObj) {
-  console.log("saveChannel: " + JSON.stringify(channelObj));
-  chrome.runtime.sendMessage({
-    message: "subscriptions",
-    channel: channelObj,
-  });
 }
 
 function compareOrUpdateObjects(templateObject, existingObject) {
@@ -506,20 +445,3 @@ function compareOrUpdateObjects(templateObject, existingObject) {
 
   return propertyWasMissing;
 }
-
-function getBrowseContainer() {
-  var ytBrowse = document.getElementsByTagName("ytd-browse");
-  for (let i = 0; i < ytBrowse.length; i++) {
-    if (ytBrowse[i].getAttribute("page-subtype") === "subscriptions") {
-      return ytBrowse[i];
-    }
-  }
-}
-
-chrome.runtime.onMessage.addListener(function (request) {
-  if (request.command == "refresh") {
-    exec();
-  } else if (request.command == "saveDone") {
-    console.log("done saving in background script");
-  }
-});
