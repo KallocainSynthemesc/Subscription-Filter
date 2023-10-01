@@ -345,7 +345,7 @@ html {
 body{
     margin-left:0;
     margin-top: 0;
-    width: 500px;
+    width: 480px;
     font-family: "Segoe UI", Tahoma, sans-serif;
     font-size: 75%;
 }

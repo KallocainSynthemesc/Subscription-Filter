@@ -66,40 +66,41 @@ function observeYtData() {
   function gridViewFilter(contents) {
     console.log('ytInitialData contents', contents.length);
     console.log("ytinitialData local storage filter data: ", window.ytfilterStoredObjects);
-  
-    return contents.filter((content) => {
-      if (hasProperty(content, "richItemRenderer")) {
-        const isAd = hasProperty(content.richItemRenderer.content, "adSlotRenderer");
-        if(isAd){
-          return true;
-        }
-        return !applyfilter(content.richItemRenderer.content.videoRenderer);
-      } else if (hasProperty(content, "richSectionRenderer")) {
-        if (hasProperty(content.richSectionRenderer.content, "richShelfRenderer")) {
-          console.log("filter out whole shorts section.");
-          return false;
-        }
+    return contents.filter((content) => shouldHideGridItems(content));
+  }
+
+  function shouldHideGridItems(content){
+    if (hasProperty(content, "richItemRenderer")) {
+      const isAd = hasProperty(content.richItemRenderer.content, "adSlotRenderer");
+      if(isAd){
+        return true;
       }
-      return true;
-    });
+      return !applyfilterRules(content.richItemRenderer.content.videoRenderer);
+    } else if (hasProperty(content, "richSectionRenderer")) {
+      if (hasProperty(content.richSectionRenderer.content, "richShelfRenderer")) {
+        console.log("filter out whole shorts section.");
+        return false;
+      }
+    }
+    return true;
   }
 
   function listViewFilter(contents){
     console.log('ytInitialData contents',contents.length);
     console.log("ytinitialData local storage filter data: ", window.ytfilterStoredObjects);
     const menu = contents[0].itemSectionRenderer.contents[0].shelfRenderer.menu;
-    const newContents = contents.filter((content) => !shouldHide(content));
+    const newContents = contents.filter((content) => !shouldHideListItems(content));
     newContents[0].itemSectionRenderer.contents[0].shelfRenderer.menu = menu;
     return newContents;
   }
 
-  function shouldHide(content){
+  function shouldHideListItems(content){
     if(hasProperty(content, "itemSectionRenderer")){
       const section = content.itemSectionRenderer.contents[0];
       if(hasProperty(section, "reelShelfRenderer")){
         return true;
       }
-      return applyfilter(section.shelfRenderer.content.expandedShelfContentsRenderer.items[0].videoRenderer);
+      return applyfilterRules(section.shelfRenderer.content.expandedShelfContentsRenderer.items[0].videoRenderer);
     }
     return false;
   }
@@ -162,7 +163,7 @@ function observeYtData() {
     return totalSeconds;
   }
 
-  function applyfilter(vidRender) {
+  function applyfilterRules(vidRender) {
     if(vidRender === undefined){
       //only happens on firefox on the homepage, not sure why. Debugging on firefox is hell.
       //even the Firefox developper edition does not need this check. Weird stuff.
@@ -270,11 +271,11 @@ function observeYtData() {
       }
       else{
         if(hasProperty(contents[i], "richItemRenderer")){
-          shouldHide = applyfilter(contents[i].richItemRenderer.content.videoRenderer);
+          shouldHide = applyfilterRules(contents[i].richItemRenderer.content.videoRenderer);
         }
         else if(hasProperty(contents[i], "itemSectionRenderer")){
           const shelf = contents[i].itemSectionRenderer.contents[0].shelfRenderer;
-          shouldHide = applyfilter(shelf.content.expandedShelfContentsRenderer.items[0].videoRenderer);
+          shouldHide = applyfilterRules(shelf.content.expandedShelfContentsRenderer.items[0].videoRenderer);
         }
         if(shouldHide === false){
           newContents.push(contents[i]);
@@ -442,6 +443,5 @@ function compareOrUpdateObjects(templateObject, existingObject) {
       );
     }
   }
-
   return propertyWasMissing;
 }
